@@ -1,0 +1,23 @@
+services:
+  postgis:
+    container_name: fishtank_postgis
+    image: postgis/postgis:15-master
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5432:5432
+    volumes:
+      - ~/fishtank_volumes/postgis:/var/lib/postgresql/data
+  metabase:
+    container_name: fishtank_metabase
+    image: metabase/metabase:v0.48.6
+    ports:
+      - 3000:3000
+  kepler.gl:
+    container_name: fishtank_kepler
+    image: crazycapivara/kepler.gl:latest
+    ports:
+      - 8080:80
+    environment:
+      - MapboxAccessToken=${MapboxAccessToken}
