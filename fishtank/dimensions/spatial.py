@@ -1,17 +1,4 @@
 """
-Helper functions to help handle the dimensions of the fishtank.
-"""
-
-import h3
-import pandas as pd
-import geopandas as gpd
-from shapely.geometry import Polygon
-
-from fishtank.db import get_engine
-from psycopg2.errors import UndefinedTable
-
-
-"""
 For our spatial data we're going to take a slightly different tack
 than we do for some of the other dimensions. Because we know the
 complete set of possible values for this dimension, we're going to
@@ -22,6 +9,14 @@ Also we're going to take advantage of uber h3 library so we can generate
 all our keys without ever having to reference the database. In the following
 if we say "h3_index" that's a string and if we say "h3_key" that's an integer.
 """
+
+import h3
+import pandas as pd
+import geopandas as gpd
+from shapely.geometry import Polygon
+from psycopg2.errors import UndefinedTable
+
+from fishtank.db import get_engine
 
 H3_RESOLUTIONS = [2, 4, 6]
 H3_TABLE_PREFIX = "h3_resolution_"
@@ -98,58 +93,6 @@ def append_spatial_dimension_addition(dataframe, resolution):
 
     dataframe.to_postgis(
         f"{H3_TABLE_PREFIX}{resolution}",
-        get_engine(),
-        if_exists="append",
-        index=False,
-    )
-
-
-"""
-Likewise for dates we're going to have pregenerated keys. Specifically,
-we'll just use the epoch of 12:00:00 AM on that day as the key.
-"""
-
-DATE_TABLE = "dates"
-
-
-def add_date_keys_to_facts(dataframe, date_col="date"):
-    dataframe["date_key"] = dataframe[date_col].astype("datetime64[s]").astype(int)
-    dataframe["date_key"] = dataframe["date_key"] - dataframe["date_key"] % 86400
-
-
-def build_date_dimension_addition(dataframe):
-    keys = set(dataframe[f"date_key"])
-    keys_filter = ",".join([str(key) for key in keys])
-
-    sql = f"""
-    select distinct 
-        date_key
-    from 
-        {DATE_TABLE}
-    where
-        date_key in ({keys_filter})
-    """
-    try:
-        existing_keys = set(pd.read_sql(sql, get_engine())[f"date_key"])
-    except UndefinedTable:
-        existing_keys = set()
-
-    new_keys = keys - existing_keys
-
-    dataframe = pd.DataFrame(new_keys, columns=["date_key"])
-    dataframe["date"] = pd.to_datetime(dataframe["date_key"], unit="s")
-    dataframe["year"] = dataframe["date"].dt.year
-    dataframe["month"] = dataframe["date"].dt.month
-    dataframe["day"] = dataframe["date"].dt.day
-
-    return dataframe
-
-
-def append_date_dimension_addition(dataframe):
-    assert dataframe.shape[0] > 0
-
-    dataframe.to_sql(
-        f"{DATE_TABLE}",
         get_engine(),
         if_exists="append",
         index=False,
