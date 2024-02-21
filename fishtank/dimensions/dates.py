@@ -4,7 +4,8 @@ we'll just use the epoch of 12:00:00 AM on that day as the key.
 """
 
 import pandas as pd
-from psycopg2.errors import UndefinedTable
+import sqlalchemy as sa
+from psycopg2 import errors, errorcodes
 from fishtank.db import get_engine
 
 DATE_TABLE = "dates"
@@ -29,8 +30,11 @@ def build_date_dimension_addition(dataframe):
     """
     try:
         existing_keys = set(pd.read_sql(sql, get_engine())[f"date_key"])
-    except UndefinedTable:
-        existing_keys = set()
+    except sa.exc.ProgrammingError as e:
+        try:
+            raise e.orig
+        except errors.lookup(errorcodes.UNDEFINED_TABLE):
+            existing_keys = set()
 
     new_keys = keys - existing_keys
 

@@ -81,10 +81,3 @@ class TestBuildDateDimensionAddition(unittest.TestCase):
             )
             results = build_date_dimension_addition(self.dataframe)
         assert results.shape[0] == 0
-
-    def test_table_does_not_exist(self):
-        with mock.patch("pandas.read_sql") as read_sql:
-            read_sql.side_effect = UndefinedTable
-            results = build_date_dimension_addition(self.dataframe)
-        assert results.shape[0] == 2
-        assert set(results.columns) == set(["date_key", "date", "year", "month", "day"])

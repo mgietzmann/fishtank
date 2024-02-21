@@ -2,3 +2,4 @@ h3==3.7.6
 pandas==2.2.0
 psycopg2-binary==2.9.9
 SQLAlchemy==2.0.27
+geoalchemy2==0.14.4

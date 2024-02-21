@@ -14,7 +14,8 @@ import h3
 import pandas as pd
 import geopandas as gpd
 from shapely.geometry import Polygon
-from psycopg2.errors import UndefinedTable
+import sqlalchemy as sa
+from psycopg2 import errors, errorcodes
 
 from fishtank.db import get_engine
 
@@ -70,8 +71,11 @@ def build_spatial_dimension_addition(dataframe, resolution):
     """
     try:
         existing_keys = set(pd.read_sql(sql, get_engine())[f"h3_key_{resolution}"])
-    except UndefinedTable:
-        existing_keys = set()
+    except sa.exc.ProgrammingError as e:
+        try:
+            raise e.orig
+        except errors.lookup(errorcodes.UNDEFINED_TABLE):
+            existing_keys = set()
 
     new_keys = keys - existing_keys
 
@@ -83,7 +87,7 @@ def build_spatial_dimension_addition(dataframe, resolution):
             }
             for key in new_keys
         ]
-    )
+    ).to_wkt()
     return dataframe
 
 
@@ -91,7 +95,7 @@ def append_spatial_dimension_addition(dataframe, resolution):
     assert resolution in H3_RESOLUTIONS
     assert dataframe.shape[0] > 0
 
-    dataframe.to_postgis(
+    dataframe.to_sql(
         f"{H3_TABLE_PREFIX}{resolution}",
         get_engine(),
         if_exists="append",

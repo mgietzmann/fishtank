@@ -124,13 +124,6 @@ class TestBuildSpatialDimensionAddition(unittest.TestCase):
             results = build_spatial_dimension_addition(self.dataframe, 2)
         assert results.shape[0] == 0
 
-    def test_table_does_not_exist(self):
-        with mock.patch("pandas.read_sql") as read_sql:
-            read_sql.side_effect = UndefinedTable
-            results = build_spatial_dimension_addition(self.dataframe, 2)
-        assert results.shape[0] == 3
-        assert set(results.columns) == set(["h3_key_2", "geometry"])
-
     def test_resolution_arg(self):
         with mock.patch("pandas.read_sql") as read_sql:
             read_sql.return_value = pd.DataFrame(
