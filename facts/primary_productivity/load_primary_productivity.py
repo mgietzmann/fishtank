@@ -2,7 +2,7 @@ import ee
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
-from datetime import datetime, timezone
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from fishtank.dimensions.spatial import (
     add_spatial_keys_to_facts,
