@@ -19,7 +19,7 @@ from psycopg2 import errors, errorcodes
 
 from fishtank.db import get_engine
 
-H3_RESOLUTIONS = [2, 4, 6]
+H3_RESOLUTIONS = [2, 4]
 H3_TABLE_PREFIX = "h3_resolution_"
 
 
